@@ -12,8 +12,8 @@
 
 namespace OCA\Music\Http;
 
-use OCP\AppFramework\Http\Response;
 use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\Response;
 
 /**
  * A renderer for files
@@ -30,7 +30,8 @@ class FileResponse extends Response {
 	 * @param int $statusCode the Http status code, defaults to 200
 	 */
 	public function __construct($file, $statusCode=Http::STATUS_OK) {
-
+		$this->cacheFor(18000);
+		$this->addHeader('Pragma', 'cache');
 		if (is_array($file)) {
 			$this->file = $file['content'];
 			$this->addHeader('Content-type', $file['mimetype'] .'; charset=utf-8');

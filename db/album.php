@@ -164,6 +164,8 @@ class Album extends Entity {
 	 */
 	public function coverToCollection(IURLGenerator $urlGenerator, $cachedCoverData) {
 		if ($this->getCoverFileId() > 0) {
+			return $this->coverToAPI($urlGenerator);
+
 			if ($cachedCoverData !== null) {
 				return 'data:' . $cachedCoverData['mimetype'] . ';base64,' . $cachedCoverData['content'];
 			} else {

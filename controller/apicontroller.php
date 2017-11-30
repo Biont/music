@@ -14,28 +14,26 @@
 
 namespace OCA\Music\Controller;
 
-use \OCP\AppFramework\Controller;
-use \OCP\AppFramework\Http;
-use \OCP\AppFramework\Http\DataDisplayResponse;
-use \OCP\AppFramework\Http\JSONResponse;
-use \OCP\Files\Folder;
-use \OCP\IL10N;
-use \OCP\IRequest;
-use \OCP\IURLGenerator;
-
-use \Doctrine\DBAL\Exception\UniqueConstraintViolationException;
-
-use \OCA\Music\AppFramework\Core\Logger;
-use \OCA\Music\BusinessLayer\AlbumBusinessLayer;
-use \OCA\Music\BusinessLayer\ArtistBusinessLayer;
-use \OCA\Music\BusinessLayer\TrackBusinessLayer;
-use \OCA\Music\Db\Artist;
-use \OCA\Music\Db\Cache;
-use \OCA\Music\Db\Track;
-use \OCA\Music\Http\ErrorResponse;
-use \OCA\Music\Http\FileResponse;
-use \OCA\Music\Utility\CoverHelper;
-use \OCA\Music\Utility\Scanner;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use OCA\Music\AppFramework\Core\Logger;
+use OCA\Music\BusinessLayer\AlbumBusinessLayer;
+use OCA\Music\BusinessLayer\ArtistBusinessLayer;
+use OCA\Music\BusinessLayer\TrackBusinessLayer;
+use OCA\Music\Db\Artist;
+use OCA\Music\Db\Cache;
+use OCA\Music\Db\Track;
+use OCA\Music\Http\ErrorResponse;
+use OCA\Music\Http\FileResponse;
+use OCA\Music\Utility\CoverHelper;
+use OCA\Music\Utility\Scanner;
+use OCP\AppFramework\Controller;
+use OCP\AppFramework\Http;
+use OCP\AppFramework\Http\DataDisplayResponse;
+use OCP\AppFramework\Http\JSONResponse;
+use OCP\Files\Folder;
+use OCP\IL10N;
+use OCP\IRequest;
+use OCP\IURLGenerator;
 
 
 class ApiController extends Controller {
@@ -119,6 +117,8 @@ class ApiController extends Controller {
 		}
 
 		$response = new DataDisplayResponse($collectionJson);
+		$response->cacheFor(18000);
+		$response->addHeader('Pragma', 'cache');
 		$response->addHeader('Content-Type', 'application/json; charset=utf-8');
 		return $response;
 	}
@@ -264,9 +264,14 @@ class ApiController extends Controller {
 	 * @NoAdminRequired
 	 * @NoCSRFRequired
 	 */
-	public function albums($fulltree) {
+	public function albums($fulltree, $page_size, $page) {
 		$fulltree = filter_var($fulltree, FILTER_VALIDATE_BOOLEAN);
-		$albums = $this->albumBusinessLayer->findAll($this->userId);
+		$page_size = filter_var($page_size, FILTER_VALIDATE_INT);
+		$page = filter_var($page, FILTER_VALIDATE_INT);
+		if ($page > 0) {
+			$page--;
+		}
+		$albums = $this->albumBusinessLayer->findAll($this->userId,null,$page_size,$page_size*$page);
 		foreach($albums as &$album) {
 			$artistIds = $album->getArtistIds();
 			$album = $album->toAPI($this->urlGenerator, $this->l10n);
